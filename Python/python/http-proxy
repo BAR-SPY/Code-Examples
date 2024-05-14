@@ -33,8 +33,6 @@ class Proxy(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.copyfile(output, self.wfile)
 
-    def do_GET(self):
-
 httpd = None
 try:
     socketserver.TCPServer.allow_reuse_address = True
