@@ -1,0 +1,39 @@
+#!/bin/bash
+
+SERVER=$2
+
+function list-cons-active(){
+    nmcli --colors=yes connection | grep --color=always -v "\-\-"
+}
+
+function list-cons-inactive(){
+    nmcli connection | grep --color=always "\-\-"
+}
+
+function con-up(){
+    nmcli connection up $SERVER
+}
+
+function con-down(){
+    nmcli connection down $SERVER
+}
+
+while getopts "aiud" opt; do
+    case $opt in
+        a)
+            list-cons-active
+            ;;
+        i)
+            list-cons-inactive
+            ;;
+        u)
+            con-up
+            ;;
+        d)
+            con-down
+            ;;
+        *)
+            echo "Invalid option: -$OPTARG"
+            ;;
+    esac
+done
