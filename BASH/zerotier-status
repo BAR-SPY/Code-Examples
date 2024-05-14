@@ -1,0 +1,45 @@
+#!/bin/bash 
+[[ $UID -ne 0 ]] && echo "You must run this as root" && exit 1
+
+STATUS=$(zerotier-cli info | grep -Eo "ONLINE|OFFLINE")
+NETWORKID=$(zerotier-cli listnetworks | grep -Eo [0-9a-z]{16})
+
+function restructure(){
+    echo "Stopping service..."
+    systemctl stop zerotier-one.service
+
+    echo "Removing identity files..."
+    rm /var/lib/zerotier-one/identity.* 
+
+    echo "Starting service..."
+    systemctl start zerotier-one.service
+
+    sleep 10
+
+    zerotier-cli join $NETWORKID
+    DEVICE_ID=$(zerotier-cli info | grep -Eo '[0-za-z]{10}')
+    echo "New Device ID: $DEVICE_ID"
+    
+}
+
+function reconnect(){
+    echo "Reconnecting...."
+
+    zerotier-cli join $NETWORKID
+    if [[ $STATUS == "ONLINE" ]]; then
+        exit 0
+    else
+        restructure
+    fi
+}
+
+case $STATUS in
+    "ONLINE")
+        echo "Online."
+        ;;
+    "OFFLINE")
+        echo "Offline"
+        echo "Attempting to reconnect..."
+        reconnect
+        ;;
+esac
