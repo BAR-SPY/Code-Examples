@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#This is a script to count files and directories.
+#
+#Usage: filecount [directory]
+#
+#The directory is completely optional. If you do not supply a directory, it simply counts the directory you're in.
+#
+#Example usage:
+#   filecount /home/
+#
+#Example output:
+#           *Header*
+#   /home/
+#   |
+#   |--> Directories: 1
+#   |--> Files: 0
+#
+#Ideas:
+#   I could write this to count not only files and directories, but to also count files with a certain extension. So for instance: count all of the files with the extension ".mkv"
+
+#Tests if there is a first argument or not. (-z tests for a string length of zero)
+if [[ ! -z $1 ]]; then
+    FILES=$(ls -laA $1 | grep -v ^d | wc -l)
+    DIRS=$(ls -laA $1 | grep ^d | wc -l)
+    WD=$1
+
+    printf " _______________________________\n"
+    printf "|           Filecount!!         |\n"
+    printf "|_______________________________|\n"
+
+    printf "${WD}\n"
+    printf " |\n"
+    printf " |--> Directories:   ${DIRS}\n"
+    printf " |--> Regular Files: ${FILES}\n"
+else
+    FILES=$(ls -laA | grep -v ^d | wc -l)
+    DIRS=$(ls -laA | grep ^d | wc -l)
+    WD=$(pwd)
+    printf " _______________________________\n"
+    printf "|           Filecount!!         |\n"
+    printf "|_______________________________|\n"
+
+    printf "${WD}\n"
+    printf " |\n"
+    printf " |--> Directories:   ${DIRS}\n"
+    printf " |--> Regular Files: ${FILES}\n"
+fi
