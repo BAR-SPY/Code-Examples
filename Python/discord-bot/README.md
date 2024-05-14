@@ -1,0 +1,1 @@
+When this is cloned, you will need to create a file in the same directory called ".env" with you Discord developer token. This is how the bot authenticates to the server and knows which server to connect to.
