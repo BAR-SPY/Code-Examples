@@ -1,0 +1,48 @@
+#!/usr/bin/python3
+
+import socketserver
+import http.server
+import urllib.request
+
+PORT = 4321
+
+
+class Proxy(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        print(self.path)
+        url=self.path
+        self.send_response(200)
+        self.end_headers()
+        self.copyfile(urllib.request.urlopen(url), self.wfile)
+
+    def do_POST(self):
+        url = self.path
+        content_length = int(self.headers.get('Content-Length', 0))
+        
+        print(f"Content Length: {content_length}")
+
+        if content_length:
+            content = self.rfile.read(content_length)
+        else:
+            content = None
+
+        req = urllib.request.Request(url, method="POST", data=content)
+        output = urllib.request.urlopen(req)
+
+        self.send_response(200)
+        self.end_headers()
+        self.copyfile(output, self.wfile)
+
+    def do_GET(self):
+
+httpd = None
+try:
+    socketserver.TCPServer.allow_reuse_address = True
+    httpd = socketserver.TCPServer(('', PORT), Proxy, http.server.SimpleHTTPRequestHandler)
+    print(f"Proxy at: http://localhost:{PORT}")
+    httpd.serve_forever()
+except KeyboardInterrupt:
+    print("Closing based on user input")
+finally:
+    if httpd:
+        httpd.shutdown()
