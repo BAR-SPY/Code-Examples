@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -e
+
+#These are only used in the quick function
+USER=<change me>
+SERVER="$1"
+
+function usage(){
+    echo 'Usage: $0 -u <username> -s <server hostnam|IP> [-q <quickly grab>]
+                    -u : Username you login with.
+                    -s : The server that you want to grab things from.
+                    -r : The remote directory that the file is in.
+                    -d : Where you want to save the file locally.
+                    -q : Quick mode that uses a hardcoded user and you only provide the server as an argument.'
+}                   
+
+function quick(){
+    shift
+    #[[ -z $USER || -z $QUICKDIR ]] && usage && exit 1
+    for arg_s in "$@"; do
+		QUICKDIR="/tmp/$arg_s-$(date +%Y%m%d)"
+		echo -e "\t\t--------------------------------------------------"
+    	echo -e "\t\t\tSaving to: $QUICKDIR"
+    	echo -e "\t\t--------------------------------------------------\n"
+    	rsync -arWv --info=progress "$USER"@"$arg_s":/tmp/$USER $QUICKDIR
+    done
+    exit 0
+}
+
+[[ $# -eq 0 ]] && usage && exit 1
+
+while getopts ":u:s:q:r:d:" arg; do
+    case "${arg}" in
+       u)
+            USER="${OPTARG}" 
+            ;;
+       s)
+            SERVER="${OPTARG}"
+            ;;
+       d)
+           SAVEDIR="${OPTARG}"
+           ;;
+       r)
+           REMOTEDIR="${OPTARG}"
+           ;;
+       q)
+       	   SERVER="$@"
+           quick $SERVER
+            ;;
+       *|?)
+            echo "Supply an argument..."
+            usage
+            ;;
+    esac
+done 
+shift $((OPTIND - 1))
+
+if [[ ! -z $REMOTEDIR ]]; then
+    rsync -arWv --info=progress "$USER"@"$SERVER":"$REMOTEDIR" "$SAVEDIR/$USER-$(date +%Y%m%d)"
+fi
+
+rsync -arWv --info=progress "$USER"@"$SERVER":/tmp/$USER/ $SAVEDIR/$USER-$(date +%Y%m%d)
